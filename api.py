@@ -2,6 +2,7 @@ import openai
 import requests
 from PIL import Image
 import io
+import streamlit as st
 
 class open_ai:
 
