@@ -29,7 +29,7 @@ class open_ai:
         for i in range(num_responses):
             response = openai.Completion.create(
               engine="davinci-instruct-beta-v3",
-              prompt="Write a tagline using the description given below.\n\""+description+"\"",
+              prompt="Write a short creative tagline for the business named \"" + name + "\" using the description given below.\n\""+description+"\"",
               temperature=1,
               max_tokens=64,
               top_p=1,

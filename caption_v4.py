@@ -13,9 +13,6 @@ if "input_data_" not in st.session_state:
 if "tagline_" not in st.session_state:
     st.session_state.tagline_ = []
 
-if "generate_button_state_" not in st.session_state:
-    st.session_state.generate_button_state_ = False
-
 if "template_name_dict_" not in st.session_state:
     st.session_state.template_name_dict_ = {}
 
@@ -101,14 +98,15 @@ def generate_data(product, tag, template_name, template_elements):
 
 def switchboard(product, tag):
 	for key,value in st.session_state.template_name_dict_.items():
-		data = generate_data(product, tag, key, value)
-		response = requests.post('https://api.canvas.switchboard.ai/', headers=headers, data=data)
-		with st.container():
-			cols = st.columns([1,5,1])
-			cols[0].text("")
-			cols[2].text("")
-			cols[1].image(response.json()["sizes"][0]["url"])
-			horizontal(cols[1])
+		with st.spinner("Processing..."):
+			data = generate_data(product, tag, key, value)
+			response = requests.post('https://api.canvas.switchboard.ai/', headers=headers, data=data)
+			with st.container():
+				cols = st.columns([1,5,1])
+				cols[0].text("")
+				cols[2].text("")
+				cols[1].image(response.json()["sizes"][0]["url"])
+				horizontal(cols[1])
 
 def get_image():
     url_list = []
@@ -126,6 +124,12 @@ def get_image():
             url_list.append(-1)
     st.session_state.url_list_ = url_list
 
+def reset():
+	st.session_state.input_data_ = {}
+	st.session_state.tagline_ = []
+	st.session_state.template_name_dict_ = {}
+	st.session_state.url_list_ = []
+
 if __name__ == "__main__":
     
 	op = open_ai()
@@ -142,21 +146,25 @@ if __name__ == "__main__":
 		st.session_state.input_data_["intent"] = cols[1].selectbox(label="", options=("Inform", "Describe", "Convince"), key=1)
 		text("Tone", cols[0])
 		st.session_state.input_data_["tone"] = cols[1].selectbox(label="", options=("Neutral", "Confident", "Joyful", "Optimistic", "Friendly", "Urgent"))
-		text("Organization Name", cols[0])
+		text("Organization/Product Name", cols[0])
 		st.session_state.input_data_["product"] = cols[1].text_input(label="")
 
 		text("Description", cols[0])
 		st.session_state.input_data_["description"] = cols[1].text_area(label = "", height = 238)
 		cols[1].text("")
 		gen_button = cols[1].button(label="Auto Generate")
-		if gen_button or st.session_state.generate_button_state_:
-			st.session_state.generate_button_state_ = True
-			if not st.session_state.tagline_ or gen_button:
-				generate(st.session_state.input_data_)
-			horizontal()
-			header_title("Results")
-			if not st.session_state.template_name_dict_:
-				get_templates_elements()
-			if not st.session_state.url_list_:
-				get_image()
-			switchboard(st.session_state.input_data_["product"],st.session_state.tagline_[0])
+		if gen_button:
+			if st.session_state.input_data_["product"] == "" or st.session_state.input_data_["description"] == "":
+				st.error("Enter Details")
+			else:
+				if st.button(label="Reset"):
+					reset()
+				horizontal()
+				if not st.session_state.tagline_ or gen_button:
+					generate(st.session_state.input_data_)
+				header_title("Results")
+				if not st.session_state.template_name_dict_:
+					get_templates_elements()
+				if not st.session_state.url_list_:
+					get_image()
+				switchboard(st.session_state.input_data_["product"],st.session_state.tagline_[0])
