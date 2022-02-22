@@ -50,18 +50,32 @@ def get_templates_elements():
 	#st.write(st.session_state.template_name_dict_)
 
 def generate_data(product, tag, template_name, template_elements):
-	data = """{
-			"template":\""""+ template_name+"\","+"""
-			"sizes": [
-			{
-				"width": 1920,
-				"height": 1080,
-				"elements":{"""
-	data_end = """}
+	if template_name[-1] == "v":
+		data = """{
+				"template":\""""+ template_name+"\","+"""
+				"sizes": [
+				{
+					"width": 1080,
+					"height": 1080,
+					"elements":{"""
+		data_end = """}
+				}
+				]
 			}
-			]
-		}
-	"""
+		"""
+	else:
+		data = """{
+				"template":\""""+ template_name+"\","+"""
+				"sizes": [
+				{
+					"width": 1920,
+					"height": 1080,
+					"elements":{"""
+		data_end = """}
+				}
+				]
+			}
+		"""
 
 	num_tag = 0
 	for i in template_elements:
