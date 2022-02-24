@@ -56,8 +56,8 @@ class open_ai:
 
     def keywords(self, description):
         response = openai.Completion.create(
-        engine="davinci",
-        prompt="Text: " + description + "\n\nKeywords:",
+        engine="davinci-instruct-beta-v3",
+        prompt="Text: " + description + "\n\nMain Keyword:",
         temperature=0.3,
         max_tokens=80,
         top_p=1.0,

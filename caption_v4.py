@@ -19,6 +19,12 @@ if "template_name_dict_" not in st.session_state:
 if "url_list_" not in st.session_state:
     st.session_state.url_list_ = []
 
+if "image_index_" not in st.session_state:
+    st.session_state.image_index_ = -1
+	
+if "accept_tag_" not in st.session_state:
+    st.session_state.accept_tag_ = False
+
 unsplash_key = st.secrets["UNSPLASH_KEY"]
 switchboard_key = st.secrets["SWITCHBOARD_KEY"]
 headers = {'Content-Type': 'application/json','X-API-Key': switchboard_key}
@@ -50,6 +56,7 @@ def get_templates_elements():
 	#st.write(st.session_state.template_name_dict_)
 
 def generate_data(product, tag, template_name, template_elements):
+
 	if template_name[-1] == "v":
 		data = """{
 				"template":\""""+ template_name+"\","+"""
@@ -103,7 +110,7 @@ def generate_data(product, tag, template_name, template_elements):
 				temp = "\""+element+"\":{\"text\": "+t2+"},"
 				data += temp
 		if element[:-2] == "img":
-			temp = "\""+element+"\":{\"url\": \""+st.session_state.url_list_[0]+"\"},"
+			temp = "\""+element+"\":{\"url\": \""+st.session_state.url_list_[st.session_state.image_index_]+"\"},"
 			data += temp
 
 	data = data[:-1]+data_end
@@ -112,37 +119,41 @@ def generate_data(product, tag, template_name, template_elements):
 
 def switchboard(product, tag):
 	for key,value in st.session_state.template_name_dict_.items():
-		with st.spinner("Processing..."):
+		with st.spinner("Processing Templates..."):
 			data = generate_data(product, tag, key, value)
 			response = requests.post('https://api.canvas.switchboard.ai/', headers=headers, data=data)
 			with st.container():
-				cols = st.columns([1,5,1])
+				if key[-1] == "v":
+					cols = st.columns([1,1,1])
+				else:
+					cols = st.columns([1,5,1])
 				cols[0].text("")
 				cols[2].text("")
 				cols[1].image(response.json()["sizes"][0]["url"])
 				horizontal(cols[1])
 
-def get_image():
-    url_list = []
-    topics = op.keywords(st.session_state.input_data_["description"])
-    for topic in topics:
-        images = requests.get("https://api.unsplash.com/search/photos?query="+topic+"&orientation=landscape&page=1&client_id=" + unsplash_key)
-        #print(images)
-        data = images.json()
-        result = data.get("results")
-        if len(result) > 0:
-            urls = result[0].get("urls")
-            url_list.append(urls.get("regular"))
-            print(urls.get("regular"))
-        else:
-            url_list.append(-1)
-    st.session_state.url_list_ = url_list
+def get_image(color=""):
+	url_list = []
+	topics = op.keywords(st.session_state.input_data_["description"])
+	for topic in topics:
+		topic=topic.replace(",","")
+		st.write(topic)
+		images = requests.get("https://api.unsplash.com/search/photos?query="+topic+"&page=1&client_id=" + unsplash_key)
+		#print(images)
+		data = images.json()
+		result = data.get("results")
+		if len(result) > 0:
+			for u in result:
+				url_list.append(u["urls"]["regular"])
+	#st.write(url_list)
+	st.session_state.url_list_ = url_list
 
 def reset():
 	st.session_state.input_data_ = {}
 	st.session_state.tagline_ = []
 	st.session_state.template_name_dict_ = {}
 	st.session_state.url_list_ = []
+	st.experimental_rerun()
 
 if __name__ == "__main__":
     
@@ -166,19 +177,52 @@ if __name__ == "__main__":
 		text("Description", cols[0])
 		st.session_state.input_data_["description"] = cols[1].text_area(label = "", height = 238)
 		cols[1].text("")
-		gen_button = cols[1].button(label="Auto Generate")
-		if gen_button:
+		gen_button = cols[1].button(label="Generate")
+		next_ = False
+		accept = False
+		reset_ = False
+		if gen_button or st.session_state.tagline_:
 			if st.session_state.input_data_["product"] == "" or st.session_state.input_data_["description"] == "":
 				st.error("Enter Details")
 			else:
-				if st.button(label="Reset"):
-					reset()
-				horizontal()
-				if not st.session_state.tagline_ or gen_button:
-					generate(st.session_state.input_data_)
-				header_title("Results")
-				if not st.session_state.template_name_dict_:
+				with st.spinner("Generating Tagline..."):
+					if not st.session_state.tagline_:
+						generate(st.session_state.input_data_)
+					horizontal()
+					st.subheader("Tagline:")
+					st.info(st.session_state.tagline_[0])
+					with st.container():
+						cols = st.columns([1,1,1,5])
+						cols[3].text("")
+						accept = cols[0].button(label="Accept")
+						next_ = cols[1].button(label="Next")
+						reset_ = cols[2].button(label="Reset")
+		horizontal()
+		if reset_:
+			reset()
+		if next_:
+			with st.spinner("Generating Tagline..."):
+				generate(st.session_state.input_data_)
+			st.experimental_rerun()
+		if accept or st.session_state.accept_tag_:
+			st.session_state.accept_tag_ = True
+			#header_title("Results")
+			if not st.session_state.template_name_dict_:
+				with st.spinner("Retrieving Templates..."):
 					get_templates_elements()
-				if not st.session_state.url_list_:
+			if not st.session_state.url_list_:
+				with st.spinner("Retrieving Template Images..."):
 					get_image()
+			st.subheader("Select Image")
+			cols = st.columns([1,1,1])
+			col = 0
+			for count, image in enumerate(st.session_state.url_list_):
+				col = count%3
+				with cols[col].expander(label="Image", expanded=True):
+					st.image(image)
+					if st.button(label="Accept", key=count):
+						st.session_state.image_index_ = count
+			horizontal()
+			if st.session_state.image_index_ != -1:
+				header_title("Results")
 				switchboard(st.session_state.input_data_["product"],st.session_state.tagline_[0])
