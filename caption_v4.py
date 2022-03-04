@@ -34,10 +34,13 @@ def generate(input_data):
 	tag = op.tagline(input_data["description"], input_data["product"])
 	tag = tag[0].replace("|", "")
 	tag = tag.split(" ")
-	for word in tag:
-		tag_out += word[0].upper() + word[1:]+ " "
+	if len(tag)>0:
+		for word in tag:
+			tag_out += word[0].upper() + word[1:]+ " "
 
-	st.session_state.tagline_ = [tag_out]
+		st.session_state.tagline_ = [tag_out]
+	else:
+		st.session_state.tagline_ = ["Missing"]
 
 	#header = op.header(input_data["description"], input_data["demography"], input_data["intent"], input_data["tone"], input_data["product"])
 	# tags = op.hashtag(input_data["description"])
