@@ -216,6 +216,8 @@ if __name__ == "__main__":
 			st.subheader("Select Image")
 			cols = st.columns([1,1,1])
 			col = 0
+			if len(st.session_state.url_list_)>9:
+				st.session_state.url_list_ = st.session_state.url_list_[0:9]
 			for count, image in enumerate(st.session_state.url_list_):
 				col = count%3
 				with cols[col].expander(label="Image", expanded=True):
