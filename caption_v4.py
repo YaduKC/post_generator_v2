@@ -140,7 +140,7 @@ def get_image(color=""):
 	topics = op.keywords(st.session_state.input_data_["description"])
 	for topic in topics:
 		topic=topic.replace(",","")
-		st.write(topic)
+		#st.write(topic)
 		images = requests.get("https://api.unsplash.com/search/photos?query="+topic+"&page=1&client_id=" + unsplash_key)
 		#print(images)
 		data = images.json()
