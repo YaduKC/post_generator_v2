@@ -132,6 +132,7 @@ def switchboard(product, tag):
 					cols = st.columns([1,5,1])
 				cols[0].text("")
 				cols[2].text("")
+				#st.write(response.json())
 				cols[1].image(response.json()["sizes"][0]["url"])
 				horizontal(cols[1])
 
@@ -139,15 +140,20 @@ def get_image(color=""):
 	url_list = []
 	topics = op.keywords(st.session_state.input_data_["description"])
 	for topic in topics:
-		topic=topic.replace(",","")
-		#st.write(topic)
-		images = requests.get("https://api.unsplash.com/search/photos?query="+topic+"&page=1&client_id=" + unsplash_key)
-		#print(images)
-		data = images.json()
-		result = data.get("results")
-		if len(result) > 0:
-			for u in result:
-				url_list.append(u["urls"]["regular"])
+		if len(topic)>3:
+			topic=topic.replace(",","")
+			#st.write(topic)
+			images = requests.get("https://api.unsplash.com/search/photos?query="+topic+"&page=1&client_id=" + unsplash_key)
+			#print(images)
+			data = images.json()
+			result = data.get("results")
+			count = 0
+			if len(result) > 0:
+				for u in result:
+					url_list.append(u["urls"]["regular"])
+					count += 1
+					if count>=4:
+						break
 	#st.write(url_list)
 	st.session_state.url_list_ = url_list
 
@@ -219,8 +225,6 @@ if __name__ == "__main__":
 			st.subheader("Select Image")
 			cols = st.columns([1,1,1])
 			col = 0
-			if len(st.session_state.url_list_)>9:
-				st.session_state.url_list_ = st.session_state.url_list_[0:9]
 			for count, image in enumerate(st.session_state.url_list_):
 				col = count%3
 				with cols[col].expander(label="Image", expanded=True):

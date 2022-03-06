@@ -56,14 +56,13 @@ class open_ai:
 
     def keywords(self, description):
         response = openai.Completion.create(
-        engine="davinci-instruct-beta-v3",
-        prompt="Text: " + description + "\n\nMain Keyword is:",
+        engine="text-davinci-001",
+        prompt="Extract keywords from this text:\n\n" + description,
         temperature=0.3,
-        max_tokens=80,
+        max_tokens=60,
         top_p=1.0,
         frequency_penalty=0.8,
         presence_penalty=0.0,
-        stop=["\n"]
         )
         key = response.choices[0].get("text")
         return list(set(key.split()))
