@@ -192,6 +192,9 @@ if __name__ == "__main__":
 	st.set_page_config(layout="wide")
 	header_title("Caption.AI")
 	horizontal()
+	regen_tagline = False
+	regen_header = False
+	regen_hashtags = False
 	with st.container():
 		cols=st.columns([1,6,0.6])
 		cols[2].text("")
