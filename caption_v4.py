@@ -6,12 +6,17 @@ from custom_elements import sub_header_title
 from custom_elements import text
 from custom_elements import text_left
 import requests
-
 if "input_data_" not in st.session_state:
     st.session_state.input_data_ = {}
 
 if "tagline_" not in st.session_state:
     st.session_state.tagline_ = []
+
+if "header_" not in st.session_state:
+    st.session_state.header_ = []
+
+if "hashtags_" not in st.session_state:
+    st.session_state.hashtags_ = []
 
 if "template_name_dict_" not in st.session_state:
     st.session_state.template_name_dict_ = {}
@@ -24,6 +29,12 @@ if "image_index_" not in st.session_state:
 	
 if "accept_tag_" not in st.session_state:
     st.session_state.accept_tag_ = False
+
+if "accept_header_" not in st.session_state:
+    st.session_state.accept_header_ = False
+
+if "accept_hashtags_" not in st.session_state:
+    st.session_state.accept_hashtags_ = False
 
 unsplash_key = st.secrets["UNSPLASH_KEY"]
 switchboard_key = st.secrets["SWITCHBOARD_KEY"]
@@ -42,9 +53,15 @@ def generate(input_data):
 	else:
 		st.session_state.tagline_ = ["Missing"]
 
-	#header = op.header(input_data["description"], input_data["demography"], input_data["intent"], input_data["tone"], input_data["product"])
-	# tags = op.hashtag(input_data["description"])
+	
+	st.session_state.hashtags_ = op.hashtag(input_data["description"])
 	# st.write(tags)
+
+def generate_header(input_data):
+	st.session_state.header_ = op.header(input_data["description"], input_data["demography"], input_data["intent"], input_data["tone"], input_data["product"])
+
+def generate_hashtags(input_data):
+	st.session_state.hashtags_ = op.hashtag(input_data["description"])
 
 def get_templates_elements():
 	response_template = requests.get('https://api.canvas.switchboard.ai/templates', headers=headers)
@@ -162,6 +179,11 @@ def reset():
 	st.session_state.tagline_ = []
 	st.session_state.template_name_dict_ = {}
 	st.session_state.url_list_ = []
+	st.session_state.header_ = []
+	st.session_state.hashtags_ = []
+	st.session_state.accept_tag_ = False
+	st.session_state.accept_header_ = False
+	st.session_state.accept_hashtags_ = False
 	st.experimental_rerun()
 
 if __name__ == "__main__":
@@ -197,21 +219,51 @@ if __name__ == "__main__":
 				with st.spinner("Generating Tagline..."):
 					if not st.session_state.tagline_:
 						generate(st.session_state.input_data_)
+						generate_header(st.session_state.input_data_)
+						generate_hashtags(st.session_state.input_data_)
+
 					horizontal()
-					st.subheader("Tagline:")
-					st.info(st.session_state.tagline_[0])
 					with st.container():
-						cols = st.columns([1,1,1,5])
+						cols = st.columns([5,1])
+						cols[0].subheader("Tagline:")
+						cols[0].info(st.session_state.tagline_[0])
+						cols[1].header("")
+						cols[1].header("")
+						regen_tagline = cols[1].button(label="Regenerate", key=9)
+					with st.container():
+						cols = st.columns([5,1])
+						cols[0].subheader("Header:")
+						cols[0].info(st.session_state.header_)
+						cols[1].header("")
+						cols[1].header("")
+						regen_header = cols[1].button(label="Regenerate", key=24)
+					with st.container():
+						cols = st.columns([5,1])
+						cols[0].subheader("Hashtags:")
+						cols[0].info(st.session_state.hashtags_[0])
+						cols[1].header("")
+						cols[1].header("")
+						regen_hashtags = cols[1].button(label="Regenerate", key=34)
+					horizontal()
+					with st.container():
+						cols = st.columns([1,1,1,8])
 						cols[3].text("")
 						accept = cols[0].button(label="Accept")
-						next_ = cols[1].button(label="Next")
-						reset_ = cols[2].button(label="Reset")
+						reset_ = cols[1].button(label="Reset")
 		horizontal()
 		if reset_:
 			reset()
-		if next_:
+		if regen_tagline:
 			with st.spinner("Generating Tagline..."):
 				generate(st.session_state.input_data_)
+			st.experimental_rerun()
+		if regen_header:
+			with st.spinner("Generating Header..."):
+				generate_header(st.session_state.input_data_)
+			st.experimental_rerun()
+		if regen_hashtags:
+			with st.spinner("Generating Hashtags..."):
+				generate_hashtags(st.session_state.input_data_)
 			st.experimental_rerun()
 		if accept or st.session_state.accept_tag_:
 			st.session_state.accept_tag_ = True

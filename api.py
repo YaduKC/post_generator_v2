@@ -69,13 +69,13 @@ class open_ai:
 
     def header(self, description, demography, intent, tone, name):
 
-        if intent[0] == "Convince": intent = "convincing"
-        elif intent[0] == "Inform": intent = "informative"
-        elif intent[0] == "Describe": intent = "descriptive"
+        if intent == "Convince": intent = "convincing"
+        elif intent == "Inform": intent = "informative"
+        elif intent == "Describe": intent = "descriptive"
 
         response = openai.Completion.create(
-          engine="davinci-instruct-beta-v3",
-          prompt="Write a 60 word"+ intent +" advertisement for "+ demography[0] +" with an "+ tone[0] +" tone using the description given below for the business named \"" + name + "\".\n\""+description+"\"",
+          engine="text-davinci-001",
+          prompt="Write a 60 word "+ intent +" advertisement for "+ demography +" with an "+ tone +" tone using the description given below for the business named \"" + name + "\".\n\""+description+"\"",
           temperature=0.7,
           max_tokens=100,
           top_p=1,
