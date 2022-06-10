@@ -269,7 +269,7 @@ if __name__ == "__main__":
 				generate_hashtags(st.session_state.input_data_)
 			st.experimental_rerun()
 			
-		"""if accept or st.session_state.accept_tag_:
+		remove = """if accept or st.session_state.accept_tag_:
 			st.session_state.accept_tag_ = True
 			#header_title("Results")
 			if not st.session_state.template_name_dict_:
